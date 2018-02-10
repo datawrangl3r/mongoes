@@ -1,0 +1,17 @@
+{
+	"EXTRACTION":
+		{
+			"HOST": "localhost",
+			"INDEX": "",
+			"DBENGINE": "elasticsearch",
+			"PORT":9200
+		},
+	"COMMIT":
+		{
+			"HOST": "localhost",
+			"DATABASE": "",
+			"COLLECTION": "",
+			"DBENGINE": "mongo",
+			"PORT":5432
+		}
+}
