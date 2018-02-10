@@ -11,6 +11,8 @@
 			"HOST": "localhost",
 			"DATABASE": "",
 			"COLLECTION": "",
+			"USER":"",
+			"PASSWORD":"",
 			"DBENGINE": "mongo",
 			"PORT":5432
 		}

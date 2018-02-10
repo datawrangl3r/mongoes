@@ -1,4 +1,4 @@
-[![N|Solid](https://github.com/datawrangl3r/mongoes/blob/master/mongoes/mongoes.png)](https://github.com/datawrangl3r/mongoes)
+[![N|Solid](https://github.com/datawrangl3r/mongoes/blob/master/mongoes.png)](https://github.com/datawrangl3r/mongoes)
 # MongoES
 A robust elasticsearch to Mongo Migrator. As of now, the data migration is a one-way lane from Elasticsearch to MongoDB. The migration from mongoDB to Elasticsearch is currently underway.
 
