@@ -3,8 +3,11 @@
 		{
 			"HOST": "localhost",
 			"INDEX": "",
+			"USER": "",
+			"PASSWORD": "",
 			"DBENGINE": "elasticsearch",
-			"PORT":9200
+			"PORT":9200,
+			"PROTOCOL": "https"
 		},
 	"COMMIT":
 		{
