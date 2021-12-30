@@ -2,21 +2,22 @@
 	"EXTRACTION":
 		{
 			"HOST": "localhost",
-			"INDEX": "",
-			"USER": "",
-			"PASSWORD": "",
+			"INDEX": "blah",
+			"USER": "elastic",
+			"PASSWORD": "passopasso",
 			"DBENGINE": "elasticsearch",
 			"PORT":9200,
-			"PROTOCOL": "https"
+			"PROTOCOL": "http"
 		},
 	"COMMIT":
 		{
 			"HOST": "localhost",
-			"DATABASE": "",
-			"COLLECTION": "",
-			"USER":"",
-			"PASSWORD":"",
+			"DATABASE": "tempdb",
+			"COLLECTION": "tempcol",
+			"USER": "mongobongo",
+			"PASSWORD": "passopasso",
 			"DBENGINE": "mongo",
-			"PORT":5432
+			"PORT":27017,
+			"SSL": false
 		}
 }

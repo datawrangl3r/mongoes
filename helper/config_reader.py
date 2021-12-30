@@ -1,6 +1,6 @@
 import os.path, json
 
-class config_reader():
+class ConfigReader():
 	def load_config():
 		search_paths = ['/etc/mongoes/mongoes.json', './mongoes.json']
 		for file_loc in search_paths:

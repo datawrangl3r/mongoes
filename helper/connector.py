@@ -6,35 +6,65 @@ class Connector:
         self.conn_params = conn_params
         pass
 
-    def elasticsearch_connector(self):
+    def establish_connection(self, conn_nature) -> dict:
+        return self.elasticsearch_connector(conn_nature) if \
+            self.conn_params[conn_nature]['DBENGINE'].lower() == 'elasticsearch' \
+            else self.mongodb_connector(conn_nature)
+
+    def elasticsearch_connector(self, conn_nature) -> dict:
         try:
-            database = self.output['EXTRACTION']
+            params = self.conn_params[conn_nature]
             client = Elasticsearch(
-                        host = database['HOST'],
-                        http_auth = (database['USER'], database['PASSWORD']),
-                        scheme = database['PROTOCOL'],
-                        port = database['PORT']
+                        host = params['HOST'],
+                        http_auth = (params['USER'], params['PASSWORD']),
+                        scheme = params['PROTOCOL'],
+                        port = params['PORT']
             )
-            return client
+            return {
+                'Client': client, 
+                'Cursor': None,
+                'Collection': None,
+                'Index': params['INDEX'],
+                'Message': 'Connected', 
+                'Trace': None
+            }
         except Exception as e:
-            result_ = {'Success':False, 'Response': 'Extraction Connectivity Failure', 'Message': str(e)}
-            return None
+            return {
+                'Client': None,
+                'Cursor': None,
+                'Collection': None,
+                'Message': 'Failed', 
+                'Trace': str(e)
+            }
     
-    def mongodb_connector(self):
+    def mongodb_connector(self, conn_nature) -> dict:
         try:
-            database = self.output['COMMIT']
-            uri = f"mongodb+srv://{username}:{password}@{cluster-address}/{test}?retryWrites=true&w=majority&ssl=true"
+            params = self.conn_params[conn_nature]
+            ssl_flag = "&ssl=true" if params['SSL'] == True else ""
+            creds = f"{params['USER']}:{params['PASSWORD']}@" if params['USER'] != "" else ""
+            db = f"/{params['DATABASE']}" if params['DATABASE'] != "" else ""
             try:
-                if database['USER'] != '' and database['USER'] != None:
-                    uri = "mongodb://%s:%s@%s:%s" % (database['USER'], database['PASSWORD'], database['HOST'], database['PORT'])
-                else:
-                    uri = "mongodb://%s:%s" % (database['HOST'], database['PORT'])
+                uri = f"mongodb+srv://{creds}{params['HOST']}"+\
+                        f"/{params['DATABASE']}?retryWrites=true&w=majority{ssl_flag}"
+                client = MongoClient(uri)
             except:
-                uri = "mongodb://localhost:27017"
-            client = MongoClient(uri)
-            cur = client[database['DATABASE']]
-            col = cur[database['COLLECTION']]
-            return col
+                uri = f"mongodb://{creds}{params['HOST']}:{params['PORT']}{db}"
+                client = MongoClient(uri)
+            cur = client[params['DATABASE']]
+            col = cur[params['COLLECTION']]
+            return {
+                'Client': client, 
+                'Cursor': cur,
+                'Collection': col,
+                'Message': 'Connected', 
+                'Trace': None
+            }
         except Exception as e:
-            result_ = {'Success':False, 'Response': 'Commit Connectivity Failure', 'Message': str(e)}
-            return result_
+            return {
+                'Client': None,
+                'Cursor': None,
+                'Collection': None,
+                'Index': None,
+                'Message': 'Failed', 
+                'Trace': str(e)
+            }
