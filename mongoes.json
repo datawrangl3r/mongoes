@@ -2,7 +2,7 @@
 	"EXTRACTION":
 		{
 			"HOST": "localhost",
-			"INDEX": "blah",
+			"INDEX": "shakespeare",
 			"USER": "elastic",
 			"PASSWORD": "passopasso",
 			"DBENGINE": "elasticsearch",
@@ -12,8 +12,8 @@
 	"COMMIT":
 		{
 			"HOST": "localhost",
-			"DATABASE": "tempdb",
-			"COLLECTION": "tempcol",
+			"DATABASE": "shakespeare",
+			"COLLECTION": "shakespeare",
 			"USER": "mongobongo",
 			"PASSWORD": "passopasso",
 			"DBENGINE": "mongo",

@@ -42,13 +42,13 @@ class Connector:
             params = self.conn_params[conn_nature]
             ssl_flag = "&ssl=true" if params['SSL'] == True else ""
             creds = f"{params['USER']}:{params['PASSWORD']}@" if params['USER'] != "" else ""
-            db = f"/{params['DATABASE']}" if params['DATABASE'] != "" else ""
+            # db = f"/{params['DATABASE']}" if params['DATABASE'] != "" else ""
             try:
                 uri = f"mongodb+srv://{creds}{params['HOST']}"+\
                         f"/{params['DATABASE']}?retryWrites=true&w=majority{ssl_flag}"
                 client = MongoClient(uri)
             except:
-                uri = f"mongodb://{creds}{params['HOST']}:{params['PORT']}{db}"
+                uri = f"mongodb://{creds}{params['HOST']}:{params['PORT']}/{params['DATABASE']}?authSource=admin"
                 client = MongoClient(uri)
             cur = client[params['DATABASE']]
             col = cur[params['COLLECTION']]
