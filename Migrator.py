@@ -27,7 +27,6 @@ class Migrator():
             resume_point = helper_obj.find_resume_point()
             stop_mark = helper_obj.find_remaining_count()
             print (f'{resume_point} - Partition transfer completed; {stop_mark} - Documents Left')
-            import sys; sys.exit()
         print ('Transfer Complete!!!')
         return None
 

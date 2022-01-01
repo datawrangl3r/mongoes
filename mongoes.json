@@ -1,7 +1,7 @@
 {
 	"COMMIT": {
 		"HOST": "localhost",
-		"INDEX": "shakespeare2",
+		"INDEX": "shakespeare4",
 		"USER": "elastic",
 		"PASSWORD": "passopasso",
 		"DBENGINE": "elasticsearch",
@@ -19,6 +19,6 @@
 		"SSL": false
 	},
 	"SETTINGS": {
-		"FREQUENCY": 10
+		"FREQUENCY": 10000
 	}
 }
