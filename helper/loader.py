@@ -1,38 +1,20 @@
 import copy
-from pymongo import DESCENDING
+import json
+from pymongo import DESCENDING, UpdateOne
+from bson import json_util
 import elasticsearch.helpers
 
 class Loader:
-    def __init__(self, ext_con, com_con):
-        # 'Client': client, 
-        # 'Cursor': None,
-        # 'Collection': None,
-        # 'Index': params['INDEX'],
-        # 'Message': 'Connected', 
-        # 'Trace': None
+    def __init__(self, ext_con, com_con, settings):
         self.ext_con = ext_con
         self.com_con = com_con
+        self.settings = settings
         self.resume_point = None
-
-    # def this_is_just_a_drill(self):
-    #     try:
-    #         body_ = {"query": {"exists": {"field": "mongoes_id"}}}
-    #         page_ = self.ext_con.search(
-    #                     index = self.ext_con['Index'], 
-    #                     size = 1000, 
-    #                     body=body_)
-    #         hits_ = page_['hits']['hits']
-    #         self.no_trace(hits_)
-    #         return {"status": "succeeded"}
-    #     except Exception as e:
-    #         print (e)
-    #         hits_ = []
-    #     return hits_
 
     def read_data(self):
         try:
             self.resume_point = self.find_resume_point()
-            if self.ext_con['Index'] != None:
+            if 'Index' in self.ext_con:
                 body_ = {
                     "query": {
                         "bool": {
@@ -46,15 +28,20 @@ class Loader:
                     }
                 page_ = self.ext_con['Client'].search(
                             index = self.ext_con['Index'], 
-                            size = 10000, 
+                            size = self.settings['FREQUENCY'], 
                             body=body_
                         )
                 hits_ = page_['hits']['hits']
                 return hits_
                 # return {"status": "succeeded"}
             else:
-                # TBD: ES as destination
-                do_ntn = 0
+                pipeline = {
+                    "mongoes_id": {
+                        "$exists": False
+                        }
+                    }
+                # Mongo Stop Point
+                return list(self.ext_con['Collection'].find(pipeline).limit(self.settings['FREQUENCY']))
         except Exception as e:
             # TBD: Handle Exception
             hits_ = []
@@ -64,7 +51,7 @@ class Loader:
         sour_trace = []
         dest_trace = []
 
-        if self.ext_con['Index'] != None:
+        if 'Index' in self.ext_con:
             for each_hit in hits_:
                 dest_trace.append(each_hit['_source'])
                 self.resume_point+=1
@@ -78,39 +65,47 @@ class Loader:
                     }
                 })
         else:
-            #TBD Handle Mongodb as source
-            do_ntn = 0
+            for each_hit in hits_:
+                each_hit = json.loads(json_util.dumps(each_hit))
+                self.resume_point+=1
+                each_hit['mongoes_id'] = self.resume_point
+                sour_trace.append({"_id": each_hit["_id"]['$oid'], "mongoes_id": self.resume_point})
+                # each_hit['_id'] = self.resume_point
+                each_hit.pop('_id')
+                dest_trace.append({
+                    "_op_type": "insert", 
+                    '_index': self.com_con['Index'],
+                    '_id': self.resume_point,
+                    'doc': each_hit
+                })
         return sour_trace, dest_trace
 
     def write_data(self, list_):
         if list_ == []:
             return []
         try:
-            if self.ext_con['Index'] != None:
-                ext_trace, com_trace = self.tag_documents(list_)
+            ext_trace, com_trace = self.tag_documents(list_)
+            if 'Index' in self.ext_con:
                 elasticsearch.helpers.bulk(self.ext_con['Client'], ext_trace)
                 if com_trace != []:
                     self.com_con['Collection'].insert_many(com_trace, ordered=False)
                 # TBD: Handle successful write
             else:
-                # TBD: ES as destination
-                do_ntn = 0
+                bulk = []
+                for doc in ext_trace:
+                    bulk.append(
+                        UpdateOne(
+                            {'_id': doc['_id']},
+                            {'$set': {
+                                'mongoes_id': doc['mongoes_id']
+                                }
+                            }))
+                bulk_write_response = self.ext_con['Collection'].bulk_write(bulk)
+                print(com_trace)
+                elasticsearch.helpers.bulk(self.com_con['Client'], com_trace)
         except Exception as e:
+            print(e)
             return {}
-
-    # def no_trace(self, list_):
-    #     try:
-    #         mongo_copy = []
-    #         for x in list_:
-    #             mongo_copy.append(x['_source'])
-    #             mongo_copy[-1]['_id'] = mongo_copy[-1]['mongoes_id']
-    #             mongo_copy[-1].pop('mongoes_id')
-    #         if mongo_copy != []:
-    #             self.com_con.insert_many(mongo_copy, ordered=False)
-    #             return {"success":"superman"}
-    #     except Exception as e:
-    #         print (e)
-    #         return {}
 
     def validate_conf(self):
         try:
@@ -128,7 +123,7 @@ class Loader:
 
     def find_resume_point(self):
         try:
-            if self.ext_con['Index'] != None:
+            if 'Index' in self.ext_con:
                 # ES's Resume Point
                 pipeline = {
                     "aggs" : {
@@ -152,15 +147,9 @@ class Loader:
         except Exception as e:
             return 0
 
-    # def find_index_size_es(self):    #to_be_migrated
-    #     try:
-    #         return int(self.ext_con.search(index=self.ext_con['Index'], size=0)['hits']['total'])
-    #     except:
-    #         return 0
-
     def find_remaining_count(self):
         try:
-            if self.ext_con['Index'] != None:
+            if 'Index' in self.ext_con:
                 pipeline = {
                     "query": {
                         "bool": {
@@ -178,21 +167,22 @@ class Loader:
                 # ES Stop Point
                 return int(remaining_count['count'])
             else:
-                pipeline = [
-                    {
-                        "$group": {
-                            "_id": {
-                                "$ifNull": ["$mongoes_id", False]
-                            }, 
-                            "count": {
-                                "$sum": 1
+                pipeline = [{
+                        "$match": {
+                            "mongoes_id": {
+                                "$exists": False
                                 }
                             }
-                        }
-                    ]
+                        }, 
+                        {
+                        "$count": "total_count"
+                        }]
                 # Mongo Stop Point
-                return int(self.ext_con['Cursor'].aggregate(pipeline))
+                return 0 \
+                    if self.ext_con['Collection'].aggregate(pipeline)._has_next() == False \
+                    else self.ext_con['Collection'].aggregate(pipeline).next()['total_count']
         except Exception as e:
+            print(e)
             ## TBD: Handle Exceptions
             return 0
 

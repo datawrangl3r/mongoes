@@ -1,34 +1,19 @@
+import sys
 from helper.connector import Connector
 from helper.config_reader import ConfigReader
 from helper.loader import Loader
-import sys
 
 class Migrator():
     def __init__(self):
         config = ConfigReader.load_config()
         connector_obj = Connector(config)
-        ext_con = connector_obj.establish_connection('EXTRACTION')
+        ext_con = connector_obj.establish_connection('EXTRACT')
         com_con = connector_obj.establish_connection('COMMIT')
-        helper_obj = Loader(ext_con, com_con)
-
-        # index_name = self.ext_con['INDEX'] if self.ext_con['INDEX'] != None else self.com_con['INDEX']
-        # index_size_es = helper_obj.find_stop_point() #To be transferred
-
-        # TO be removed - included to loader
-        # try:
-        #     resume_point = helper_obj.find_resume_point()
-        # except Exception as e:
-        #     print(e)
-        #     resume_point = 0
-
-        # try:
-        #     self.es_mark=self.find_resume_point_es()
-        # except:
-        #     self.es_mark=0
+        helper_obj = Loader(ext_con, com_con, config['SETTINGS'])
 
         try:
             stop_mark = helper_obj.find_remaining_count()
-        except:
+        except Exception as e:
             # TBD: Handle Exception
             stop_mark = 0
 
@@ -41,10 +26,8 @@ class Migrator():
             helper_obj.write_data(input_data)
             resume_point = helper_obj.find_resume_point()
             stop_mark = helper_obj.find_remaining_count()
-            # print(resume_point, stop_mark)
-            # import sys; sys.exit()
             print (f'{resume_point} - Partition transfer completed; {stop_mark} - Documents Left')
-            # print ('%s - documents left'%(str(stop_mark)))
+            import sys; sys.exit()
         print ('Transfer Complete!!!')
         return None
 

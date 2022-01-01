@@ -10,12 +10,12 @@ class ConfigReader():
 				with open(file_loc) as f:
 					# use safe_load instead load
 					Config = json.loads(f.read())
-					if 'EXTRACTION' and 'COMMIT' in Config.keys():
+					if 'EXTRACT' and 'COMMIT' in Config.keys():
 						return Config 	#Returning the handler
 					else:
-						if 'EXTRACTION' in Config.keys() and 'COMMIT' not in Config.keys():
+						if 'EXTRACT' in Config.keys() and 'COMMIT' not in Config.keys():
 							return 'Commit configuration is unavailable'
-						elif 'EXTRACTION' not in Config.keys() and 'COMMIT' in Config.keys():
+						elif 'EXTRACT' not in Config.keys() and 'COMMIT' in Config.keys():
 							return 'Extraction configuration is unavailable'
 						else:
 							return 'Extraction and Commit Configurations are unavailable'
