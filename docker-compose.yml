@@ -1,0 +1,50 @@
+version: '3.7'
+services:
+  mongoes_demo_mongo:
+    image: mongo:latest
+    container_name: mongoes_demo_mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongobongo
+      MONGO_INITDB_ROOT_PASSWORD: passopasso
+    ports:
+      - 27017:27017
+    networks:
+      - mongoes
+    volumes:
+      - mongodata:/data/mongo
+  mongoes_demo_elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-beta1-arm64
+    container_name: mongoes_demo_elasticsearch
+    environment:
+      - xpack.security.enabled=true
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - ELASTIC_PASSWORD=passopasso
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add: 
+        - IPC_LOCK
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - mongoes
+    labels:
+      - co.elastic.logs/module=elasticsearch
+      - co.elastic.metrics/module=elasticsearch
+networks:
+  mongoes:
+    driver: bridge
+volumes:
+  mongodata:
+    driver: local
+  esdata:
+    driver: local

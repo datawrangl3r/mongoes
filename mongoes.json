@@ -1,19 +1,24 @@
 {
-	"EXTRACTION":
-		{
-			"HOST": "localhost",
-			"INDEX": "",
-			"DBENGINE": "elasticsearch",
-			"PORT":9200
-		},
-	"COMMIT":
-		{
-			"HOST": "localhost",
-			"DATABASE": "",
-			"COLLECTION": "",
-			"USER":"",
-			"PASSWORD":"",
-			"DBENGINE": "mongo",
-			"PORT":5432
-		}
+	"COMMIT": {
+		"HOST": "localhost",
+		"INDEX": "shakespeare4",
+		"USER": "elastic",
+		"PASSWORD": "passopasso",
+		"DBENGINE": "elasticsearch",
+		"PORT":9200,
+		"PROTOCOL": "http"
+	},
+	"EXTRACT": {
+		"HOST": "localhost",
+		"DATABASE": "shakespeare",
+		"COLLECTION": "shakespeare",
+		"USER": "mongobongo",
+		"PASSWORD": "passopasso",
+		"DBENGINE": "mongo",
+		"PORT":27017,
+		"SSL": false
+	},
+	"SETTINGS": {
+		"FREQUENCY": 10000
+	}
 }
